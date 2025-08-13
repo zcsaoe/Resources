@@ -1,0 +1,26 @@
+首先需要用到tftpd刷机，静态192.168.68.10，然后通电，网络显示连接后，断电，5秒再上电，接着显示网络连接后再断电，重复5次，固件名字是JDCOS.bin，然后会显示百分和上传内容，就会刷机了，降级是为了打开SSH刷写uboot；
+再说怎么刷写uboot，先登录鲁班后台，按F12，进入console控制台，输入以下代码，
+$.ajax({
+    url: 'http://' + $.cookie("HostAddrIP") + '/jdcapi',
+    async: false,
+    data: JSON.stringify({
+        jsonrpc: "2.0",
+        id: 1,
+        method: "call",
+        params: [
+            $.cookie("sessionid"),
+            "service",
+            "set",
+            {
+                "name": "dropbear",
+                "instances": {"instance1": {"command": ["/usr/sbin/dropbear"]}}
+            }
+        ]
+    }),
+    dataType: 'json',
+    type: 'POST'
+})
+之后打开ssh工具连接，可以先备份factory分区，命令：dd if=/dev/mtd2 of=/tmp/factory.bin
+刷入uboot：mtd write u-boot-mt7621-68.bin /dev/mtd0
+之后拔电按住wps按键不放上电，看到网络显示连接后松开，浏览器打开192.168.68.1，进入uboot上传initramfs固件等待5分钟，重新打开192.168.68.1进入openwrt界面
+上传sysupgrade固件，默认ip：192.168.68.1 密码：password
